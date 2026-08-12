@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JavaScript: Basic to Advanced</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header id="header" style="display:none;">
+  <div class="headtop">
+    <div>
+      <div class="eyebrow" id="t-eyebrow">basic → advanced · full reference</div>
+      <h1 id="t-title">JavaScript, start to finish</h1>
+      <div class="sub" id="t-sub">22 modules · deep explanations · runnable code · progress saved automatically</div>
+    </div>
+    <div class="langswitch">
+      <button id="btn-en" onclick="setLang('en')">EN</button>
+      <button id="btn-bn" onclick="setLang('bn')">বাংলা</button>
+    </div>
+  </div>
+  <div class="toprow" id="toprow" style="display:none;">
+    <div class="progressbar">
+      <div class="track"><div class="fill" id="progressFill"></div></div>
+      <div class="label" id="progressLabel">0 / 22</div>
+    </div>
+    <span class="userchip" id="userchip"></span>
+    <button class="resetbtn" id="t-reset" onclick="resetProgress()">↺ Reset progress</button>
+    <button class="resetbtn" id="t-logout" onclick="logout()">Log out</button>
+    <span class="savestate" id="saveState"></span>
+  </div>
+</header>
+
+<div class="authscreen" id="authscreen" style="display:none;">
+  <div class="authcard">
+    <div class="authhead">
+      <div>
+        <div class="eyebrow" id="a-eyebrow">basic → advanced · full reference</div>
+        <h2 id="a-brand">JavaScript, start to finish</h2>
+      </div>
+      <div class="langswitch">
+        <button type="button" id="a-btn-en" onclick="setLang('en')">EN</button>
+        <button type="button" id="a-btn-bn" onclick="setLang('bn')">বাংলা</button>
+      </div>
+    </div>
+
+    <h2 id="a-title">Sign in to keep your progress</h2>
+    <div class="sub" id="a-sub">A throwaway practice account. Nothing leaves this browser.</div>
+
+    <div class="authtabs">
+      <button type="button" id="tab-login" class="active" onclick="setAuthMode('login')">Log in</button>
+      <button type="button" id="tab-signup" onclick="setAuthMode('signup')">Create account</button>
+    </div>
+
+    <form id="authform" onsubmit="return submitAuth(event)" autocomplete="off">
+      <label class="field">
+        <span id="l-id">User ID</span>
+        <input id="f-id" type="text" autocomplete="username" spellcheck="false" autocapitalize="none">
+      </label>
+      <label class="field">
+        <span id="l-pw">Password</span>
+        <input id="f-pw" type="password" autocomplete="current-password">
+      </label>
+      <label class="field" id="field-pw2" style="display:none;">
+        <span id="l-pw2">Confirm password</span>
+        <input id="f-pw2" type="password" autocomplete="new-password">
+      </label>
+      <div class="autherr" id="autherr"></div>
+      <button class="authbtn" type="submit" id="a-submit">Log in</button>
+    </form>
+
+    <div class="authnote" id="a-note"></div>
+  </div>
+</div>
+
+<div class="wrap" id="appwrap" style="display:none;">
+  <nav id="nav"></nav>
+  <main id="main"></main>
+</div>
+<div class="loadscreen" id="loadscreen">Loading…</div>
+
+<script src="js/script.js"></script>
+
+</body>
+</html>
