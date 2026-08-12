@@ -51,17 +51,65 @@ const UI = {
     errNoUser:"এই ইউজার আইডিতে কোনো অ্যাকাউন্ট পাওয়া যায়নি।",
     errWrongPw:"পাসওয়ার্ড ভুল হয়েছে।",
     errNoStorage:"এই ব্রাউজার local storage ব্লক করছে, তাই কিছু সেভ করা যাচ্ছে না।"
+  },
+  hi: {
+    eyebrow:"बेसिक → एडवांस्ड · पूरी गाइड",
+    title:"जावास्क्रिप्ट, शुरू से आख़िर तक",
+    sub:n=>`${n} मॉड्यूल · गहरी व्याख्या · चलाकर देखने वाला कोड · प्रोग्रेस अपने आप सेव`,
+    reset:"↺ प्रोग्रेस रीसेट करें",
+    back:"← पीछे", next:"आगे →", run:"▶ चलाएँ", markComplete:"पूरा हुआ चिह्नित करें",
+    tryYourself:"खुद कोशिश करें", moduleOf:(i,n)=>`मॉड्यूल ${i} / ${n}`,
+    noOutput:"कोई आउटपुट नहीं — एक console.log() जोड़कर देखें", outputPlaceholder:"आउटपुट यहाँ दिखेगा",
+    saved:"✓ सेव हो गया", saving:"सेव हो रहा है…",
+    authTitle:"प्रोग्रेस सहेजने के लिए साइन इन करें",
+    authSub:"यह सिर्फ़ प्रैक्टिस का अस्थायी अकाउंट है। कुछ भी इस ब्राउज़र से बाहर नहीं जाता।",
+    authNote:"सिर्फ़ डेमो अकाउंट — पासवर्ड इस ब्राउज़र में बिना एन्क्रिप्शन सेव होता है। कोई असली पासवर्ड यहाँ न डालें।",
+    tabLogin:"लॉग इन", tabSignup:"अकाउंट बनाएँ",
+    lblId:"यूज़र आईडी", lblPw:"पासवर्ड", lblPw2:"पासवर्ड दोबारा लिखें",
+    btnLogin:"लॉग इन करें", btnSignup:"अकाउंट बनाकर शुरू करें",
+    logout:"लॉग आउट", signedInAs:"लॉग इन:",
+    errIdShort:"यूज़र आईडी कम से कम 3 अक्षर की होनी चाहिए।",
+    errIdChars:"सिर्फ़ छोटे अंग्रेज़ी अक्षर, अंक, डॉट, डैश या अंडरस्कोर इस्तेमाल करें।",
+    errPwShort:"पासवर्ड कम से कम 4 अक्षर का होना चाहिए।",
+    errPwMatch:"दोनों पासवर्ड मेल नहीं खा रहे।",
+    errExists:"यह यूज़र आईडी पहले से मौजूद है — लॉग इन करें।",
+    errNoUser:"इस यूज़र आईडी से कोई अकाउंट नहीं मिला।",
+    errWrongPw:"पासवर्ड गलत है।",
+    errNoStorage:"यह ब्राउज़र local storage रोक रहा है, इसलिए कुछ भी सेव नहीं हो सकता।"
   }
 };
 
-const GROUP_BN = {
-  "Basics":"বেসিক",
-  "Functions & Objects":"ফাংশন ও অবজেক্ট",
-  "Advanced Concepts":"অ্যাডভান্সড কনসেপ্ট",
-  "DOM & Browser":"DOM ও ব্রাউজার",
-  "Patterns & Pitfalls":"প্যাটার্ন ও সাধারণ ভুল"
+// Languages the switch offers, in display order.
+const LANGS = ['en','bn','hi'];
+
+const GROUP_LABELS = {
+  bn: {
+    "Basics":"বেসিক",
+    "Functions & Objects":"ফাংশন ও অবজেক্ট",
+    "Advanced Concepts":"অ্যাডভান্সড কনসেপ্ট",
+    "DOM & Browser":"DOM ও ব্রাউজার",
+    "Patterns & Pitfalls":"প্যাটার্ন ও সাধারণ ভুল"
+  },
+  hi: {
+    "Basics":"बेसिक",
+    "Functions & Objects":"फंक्शन और ऑब्जेक्ट",
+    "Advanced Concepts":"एडवांस्ड कॉन्सेप्ट",
+    "DOM & Browser":"DOM और ब्राउज़र",
+    "Patterns & Pitfalls":"पैटर्न और आम गलतियाँ"
+  }
 };
-const LEVEL_BN = { "Basic":"বেসিক", "Intermediate":"ইন্টারমিডিয়েট", "Advanced":"অ্যাডভান্সড" };
+
+const LEVEL_LABELS = {
+  bn: { "Basic":"বেসিক", "Intermediate":"ইন্টারমিডিয়েট", "Advanced":"অ্যাডভান্সড" },
+  hi: { "Basic":"बेसिक", "Intermediate":"इंटरमीडिएट", "Advanced":"एडवांस्ड" }
+};
+
+// Module translations that live outside MODULES, keyed by language then module index.
+// Bengali sits inline on each module as title_bn/explain_bn/challenge_bn; Hindi comes
+// from js/lang-hi.js. tr() checks this map first, then the inline field, then English.
+const MODULE_TRANSLATIONS = {
+  hi: typeof HI_MODULES !== 'undefined' ? HI_MODULES : []
+};
 
 const MODULES = [
 
@@ -795,6 +843,17 @@ let lang = 'en';
 let done = new Array(MODULES.length).fill(false);
 const groups = [...new Set(MODULES.map(m => m.group))];
 
+// ---- Translation lookup ----
+// Order: external map (Hindi) -> inline suffixed field (Bengali) -> English original.
+function tr(m, i, field){
+  if(lang === 'en') return m[field];
+  const ext = MODULE_TRANSLATIONS[lang];
+  if(ext && ext[i] && ext[i][field]) return ext[i][field];
+  return m[`${field}_${lang}`] || m[field];
+}
+const trGroup = g => (lang === 'en' ? g : (GROUP_LABELS[lang] || {})[g]) || g;
+const trLevel = l => (lang === 'en' ? l : (LEVEL_LABELS[lang] || {})[l]) || l;
+
 // ---- Storage keys (all localStorage) ----
 const USERS_KEY   = 'js-course-users-v1';     // { id: {pass, created} }
 const SESSION_KEY = 'js-course-session-v1';   // { user }
@@ -898,7 +957,7 @@ function loadProgress(user){
   const data = readJSON(progressKey(user), null);
   if(!data) return;
   if(Array.isArray(data.done) && data.done.length === MODULES.length) done = data.done;
-  if(data.lang) lang = data.lang;
+  if(LANGS.includes(data.lang)) lang = data.lang;
   if(typeof data.current === 'number' && data.current >= 0 && data.current < MODULES.length) current = data.current;
 }
 
@@ -922,8 +981,9 @@ function resetProgress(){
 }
 
 function setLang(l){
+  if(!LANGS.includes(l)) return;
   lang = l;
-  document.body.className = l === 'bn' ? 'lang-bn' : '';
+  document.body.className = `lang-${l}`;
   if(storageOK){
     try{ localStorage.setItem(LANG_KEY, l); }catch(e){}
   }
@@ -1007,9 +1067,12 @@ function applyStaticText(){
   document.getElementById('t-logout').textContent = t.logout;
   document.getElementById('userchip').textContent = currentUser ? `${t.signedInAs} ${currentUser}` : '';
   // Two language switches exist: one in the header, one on the login card.
-  ['btn-en','a-btn-en'].forEach(id => document.getElementById(id).classList.toggle('active', lang==='en'));
-  ['btn-bn','a-btn-bn'].forEach(id => document.getElementById(id).classList.toggle('active', lang==='bn'));
-  document.body.className = lang === 'bn' ? 'lang-bn' : '';
+  LANGS.forEach(l => {
+    [`btn-${l}`, `a-btn-${l}`].forEach(id => {
+      document.getElementById(id).classList.toggle('active', lang === l);
+    });
+  });
+  document.body.className = `lang-${lang}`;
 }
 
 function render(){
@@ -1019,14 +1082,12 @@ function render(){
   const nav = document.getElementById('nav');
   let navHtml = '';
   groups.forEach(g => {
-    const gLabel = lang === 'bn' ? (GROUP_BN[g] || g) : g;
-    navHtml += `<div class="grouplabel">${gLabel}</div>`;
+    navHtml += `<div class="grouplabel">${trGroup(g)}</div>`;
     MODULES.forEach((m,i) => {
       if(m.group !== g) return;
-      const title = lang === 'bn' ? m.title_bn : m.title;
       navHtml += `<div class="item ${i===current?'active':''} ${done[i]?'done':''}" onclick="goTo(${i})">
         <div class="num">${done[i] ? '✓' : i+1}</div>
-        <div>${title}</div>
+        <div>${tr(m, i, 'title')}</div>
       </div>`;
     });
   });
@@ -1034,11 +1095,11 @@ function render(){
 
   const main = document.getElementById('main');
   main.innerHTML = MODULES.map((m,i)=>{
-    const title = lang === 'bn' ? m.title_bn : m.title;
-    const explain = lang === 'bn' ? m.explain_bn : m.explain;
-    const challenge = lang === 'bn' ? m.challenge_bn : m.challenge;
-    const levelLabel = lang === 'bn' ? LEVEL_BN[m.level] : m.level;
-    const groupLabel = lang === 'bn' ? (GROUP_BN[m.group] || m.group) : m.group;
+    const title = tr(m, i, 'title');
+    const explain = tr(m, i, 'explain');
+    const challenge = tr(m, i, 'challenge');
+    const levelLabel = trLevel(m.level);
+    const groupLabel = trGroup(m.group);
     return `
     <div class="module ${i===current?'active':''}">
       <div class="mtitle">${title} <span class="level ${m.level}">${levelLabel}</span></div>
@@ -1113,7 +1174,7 @@ function escapeHtml(s){
   if(storageOK){
     try{
       const savedLang = localStorage.getItem(LANG_KEY);
-      if(savedLang === 'en' || savedLang === 'bn') lang = savedLang;
+      if(LANGS.includes(savedLang)) lang = savedLang;
     }catch(e){}
   }
   // Resume the previous session only if that account still exists.
