@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Visitor dashboard</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="lang-en">
+
+<div class="authscreen" id="gate">
+  <div class="authcard">
+    <div class="authhead">
+      <div>
+        <div class="eyebrow">private · server-gated</div>
+        <h2 id="a-brand">Visitor dashboard</h2>
+      </div>
+    </div>
+    <h2>Enter your admin key</h2>
+    <div class="sub">The key is checked by <code>/api/stats</code> on the server. Without it, no data is sent to this page.</div>
+    <form onsubmit="return unlock(event)">
+      <label class="field">
+        <span>Admin key</span>
+        <input id="key" type="password" autocomplete="current-password" spellcheck="false">
+      </label>
+      <div class="autherr" id="gateerr"></div>
+      <button class="authbtn" type="submit">Unlock</button>
+    </form>
+    <div class="authnote">Set <code>ADMIN_KEY</code> in your Vercel project settings. If it is unset, this endpoint refuses everyone — it never defaults to open.</div>
+  </div>
+</div>
+
+<div id="dash" style="display:none;">
+  <header id="dashhead">
+    <div class="headtop">
+      <div>
+        <div class="eyebrow">private dashboard</div>
+        <h1>Who opened the site</h1>
+        <div class="sub" id="freshness"></div>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="resetbtn" onclick="load()">↻ Refresh</button>
+        <button class="resetbtn" onclick="lock()">Lock</button>
+        <a class="resetbtn" href="index.html" style="text-decoration:none;">← Course</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashbody">
+    <div id="notice"></div>
+    <div class="tiles" id="tiles"></div>
+    <div class="panels" id="panels"></div>
+    <div class="panel">
+      <h3>Recent visits</h3>
+      <div class="tablescroll"><table id="recent"></table></div>
+    </div>
+    <p class="footnote">
+      Location is country/city resolved from the request by Vercel's edge — no IP addresses are stored.
+      Only the newest 5,000 events are kept; older ones roll off.
+    </p>
+  </main>
+</div>
+
+<script src="js/admin.js"></script>
+
+</body>
+</html>

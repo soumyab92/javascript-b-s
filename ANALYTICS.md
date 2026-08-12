@@ -111,9 +111,92 @@ Set `provider: ''` at any time to switch tracking off completely.
    `file://`? An ad blocker on your own browser? (Blockers hide *your* visit, not other
    people's.)
 
-## If you later want the dashboard inside the app
+---
 
-That needs a backend — a serverless function writing visits to a database, and an
-`admin.html` whose data the *server* refuses to send without a secret. That is the only way
-to also record which course account someone signed in as, since the anonymous providers
-above never see it. Ask and I can build it; it is a real project, not a snippet.
+# Part 2 — Your own dashboard at `/admin.html`
+
+This is built and deployed alongside the site. Unlike Part 1 it shows **which course account**
+signed in, because it is your own backend rather than an anonymous third party.
+
+| File | Role |
+|---|---|
+| [admin.html](admin.html) + [js/admin.js](js/admin.js) | the dashboard page |
+| [api/visit.js](api/visit.js) | records one event per page load |
+| [api/stats.js](api/stats.js) | returns the aggregates — **only** with the right key |
+| [api/_shared.js](api/_shared.js) | Redis helper (not a route; Vercel skips `_` files) |
+
+It needs **two** things set in Vercel. Until both are set, `/admin.html` loads but shows a
+setup message instead of data — it never silently opens up.
+
+## Step A — Add a store (2 minutes)
+
+Vercel functions are stateless, so visits need somewhere to live. Upstash Redis has a free
+tier and speaks HTTPS, so no npm packages are involved.
+
+1. Vercel project → **Storage** → **Marketplace** → **Upstash → Redis** → create
+2. Connect it to the `javascript-b-s` project
+
+That injects `KV_REST_API_URL` and `KV_REST_API_TOKEN` (or the `UPSTASH_REDIS_REST_*` pair)
+automatically. Both naming schemes are accepted.
+
+## Step B — Set your admin key
+
+Vercel project → **Settings → Environment Variables** → add:
+
+| Name | Value |
+|---|---|
+| `ADMIN_KEY` | a long random string you invent — this is your dashboard password |
+
+Generate one with `node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"`.
+
+**Redeploy** after adding variables — Vercel only picks them up on a new build.
+
+Then open `https://javascript-b-s.vercel.app/admin.html` and paste the key.
+
+## Why this is actually private
+
+The key is checked inside `api/stats.js`, **on the server**. Without a matching
+`x-admin-key` header the data is never sent, so it does not matter that `admin.html` is a
+public URL — anyone can open the page, nobody else can fill it. The comparison is
+constant-time, and if `ADMIN_KEY` is unset the endpoint refuses *everyone* rather than
+defaulting to open.
+
+Your key lives in `sessionStorage`, so closing the tab logs you out. Use **Lock** to clear it
+immediately.
+
+## What it shows
+
+Page views, logins, distinct accounts, countries, active days, first/last seen; then
+breakdowns by country, city, referrer, day, browser, platform, and chosen language; the
+most active course accounts; and the 60 most recent events.
+
+Location comes from headers Vercel attaches at the edge (`x-vercel-ip-country`,
+`x-vercel-ip-city`), so there is no third-party geo lookup and no added latency.
+**Raw IPs are never stored** — only country and city.
+
+## Limits worth knowing
+
+- **Newest 5,000 events only.** Older ones roll off; the dashboard warns when the buffer is full.
+- **`/api/visit` is public**, as it must be — every visitor calls it. Inputs are length-clipped
+  and type-checked, so someone could inflate your counts but not corrupt the store or inject
+  markup (the dashboard escapes every field it renders).
+- **Ad blockers hide some visits.** The ping goes to your own domain, so it survives more
+  blockers than Part 1's third-party beacon, but not all of them.
+- **Still not "who".** You get a course account name if the person signed in, plus a city.
+  No names, no emails, no exact addresses.
+- **Privacy duty.** City-level location tied to an account name is personal data under
+  GDPR-style rules. If people other than you will use this, publish a short privacy note
+  saying what you collect and why.
+
+## Local development
+
+`/api/*` does not exist over `file://`, so opening `admin.html` from disk shows a "could not
+reach /api/stats" message. That is expected. To run the whole thing locally:
+
+```bash
+npm i -g vercel
+vercel dev
+```
+
+`vercel dev` serves the static files and the functions together, and pulls your environment
+variables down with `vercel env pull`.

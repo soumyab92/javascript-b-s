@@ -888,6 +888,21 @@ function writeJSON(key, value){
   }catch(e){ return false; }
 }
 
+// ---- First-party visit ping -> /api/visit ----
+// Only fires on the deployed site; over file:// there is no API to call, so it stays quiet.
+// Fire-and-forget by design: a failed ping must never affect the course.
+function recordVisit(type){
+  if(location.protocol !== 'http:' && location.protocol !== 'https:') return;
+  try{
+    fetch('/api/visit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type, user: currentUser, lang }),
+      keepalive: true
+    }).catch(() => {});
+  }catch(e){}
+}
+
 // ---- Accounts ----
 // NOTE: this is a throwaway local account, not real authentication. There is no server
 // to verify anything against, so anyone with devtools can read or edit these entries.
@@ -926,6 +941,7 @@ function signup(rawId, pw, pw2){
   users[id] = { pass: hashPassword(pw), created: new Date().toISOString() };
   writeJSON(USERS_KEY, users);
   enterApp(id);
+  recordVisit('login');
   return null;
 }
 
@@ -936,6 +952,7 @@ function login(rawId, pw){
   if(!users[id]) return t.errNoUser;
   if(users[id].pass !== hashPassword(pw)) return t.errWrongPw;
   enterApp(id);
+  recordVisit('login');
   return null;
 }
 
@@ -1185,4 +1202,6 @@ function escapeHtml(s){
   }else{
     showAuth();
   }
+  // One page-view event per load, carrying the resumed account if there is one.
+  recordVisit('view');
 })();
